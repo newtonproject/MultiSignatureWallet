@@ -1,0 +1,8 @@
+wallet/*
+debug.test
+debug
+.idea/*
+.vscode/*
+config.toml
+MultiSignatureWallet
+MultiSignatureWallet.exe
