@@ -59,14 +59,12 @@ Binary archives are published at https://release.cloud.diynova.com/newton/MultiS
 
 ### Building the source
 
-To get from gitlab via `go get`, this will get source and install dependens(cobra, viper, logrus).
-
 #### Windows
 
 install:
 
 ```bash
-go get github.com/newtonproject/MultiSignatureWallet
+git clone https://github.com/newtonproject/MultiSignatureWallet.git && cd MultiSignatureWallet && make install
 ```
 
 run MultiSignatureWallet:
@@ -80,8 +78,7 @@ run MultiSignatureWallet:
 install:
 
 ```bash
-git config --global url."git@gitlab.newtonproject.org:".insteadOf "https://gitlab.newtonproject.org/"
-go get github.com/newtonproject/MultiSignatureWallet
+git clone https://github.com/newtonproject/MultiSignatureWallet.git && cd MultiSignatureWallet && make install
 ```
 
 run MultiSignatureWallet:
