@@ -16,6 +16,10 @@ func NewKeyedTransactorByAccount(wallet *keystore.KeyStore, account accounts.Acc
 	return &bind.TransactOpts{
 		From: account.Address,
 		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
+			// force update gas to 1.5 * gas
+			if tx.To() != nil {
+				tx = types.NewTransaction(tx.Nonce(), *tx.To(), tx.Value(), tx.Gas()*15/10, tx.GasPrice(), tx.Data())
+			}
 			fmt.Println("The tx is as follow: ")
 			fmt.Println("\tFrom:", account.Address.String())
 			if tx.To() == nil {
