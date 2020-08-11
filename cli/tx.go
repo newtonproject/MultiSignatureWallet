@@ -16,7 +16,7 @@ import (
 
 func (cli *CLI) buildTxSubmitCmd() *cobra.Command {
 	TxSubmitCmd := &cobra.Command{
-		Use:                   "submit <amount> <-t target> [-u NEW,WEI] [-f source]",
+		Use:                   fmt.Sprintf("submit <amount> <-t target> [-u %s] [-f source]", strings.Join(UnitList, ",")),
 		Short:                 "Submit a transaction, pay amount in unit to target address",
 		Aliases:               []string{"pay"},
 		Long:                  "Allows an owner to submit and confirm a transaction",
@@ -31,9 +31,9 @@ func (cli *CLI) buildTxSubmitCmd() *cobra.Command {
 				fmt.Fprint(os.Stderr, cmd.UsageString())
 				return
 			}
-			d := stringInSlice(unit, DenominationList)
+			d := stringInSlice(unit, UnitList)
 			if !d {
-				fmt.Printf("Unit(%s) for amount error. %s.\n", unit, DenominationString)
+				fmt.Printf("Unit(%s) for amount error. %s.\n", unit, fmt.Sprintf("Available unit: %s", strings.Join(UnitList, ",")))
 				fmt.Fprint(os.Stderr, cmd.UsageString())
 				return
 			}
@@ -73,7 +73,7 @@ func (cli *CLI) buildTxSubmitCmd() *cobra.Command {
 	}
 
 	TxSubmitCmd.Flags().StringP("to", "t", "", "target account address or name")
-	TxSubmitCmd.Flags().StringP("unit", "u", "NEW", fmt.Sprintf("unit for pay amount. %s.", DenominationString))
+	TxSubmitCmd.Flags().StringP("unit", "u", UnitETH, fmt.Sprintf("unit for pay amount. %s.", fmt.Sprintf("Available unit: %s", strings.Join(UnitList, ","))))
 	TxSubmitCmd.Flags().String("data", "", "custom data message (use quotes if there are spaces)")
 
 	TxSubmitCmd.MarkFlagRequired("to")
@@ -301,8 +301,8 @@ func (cli *CLI) showTxInfo(cmd *cobra.Command, args []string) {
 	}
 
 	unit, _ := cmd.Flags().GetString("unit")
-	if unit != "" && !stringInSlice(unit, DenominationList) {
-		fmt.Printf("Unit(%s) for amount error. %s.\n", unit, DenominationString)
+	if unit != "" && !stringInSlice(unit, UnitList) {
+		fmt.Printf("Unit(%s) for amount error. %s.\n", unit, fmt.Sprintf("Available unit: %s", strings.Join(UnitList, ",")))
 		fmt.Fprint(os.Stderr, cmd.UsageString())
 		return
 	}

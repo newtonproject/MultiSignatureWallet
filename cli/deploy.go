@@ -14,7 +14,7 @@ import (
 func (cli *CLI) buildDeployCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                   "deploy <-o addr0,addr1,addr3> <-r number> [-l dailyLimitAmountInUnit] [-u NEW|WEI]",
-		Short:                 "Deploy NewChain contract",
+		Short:                 fmt.Sprintf("Deploy %s contract", cli.bc.String()),
 		DisableFlagsInUseLine: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -27,9 +27,9 @@ func (cli *CLI) buildDeployCmd() *cobra.Command {
 				fmt.Fprint(os.Stderr, cmd.UsageString())
 				return
 			}
-			d := stringInSlice(unit, DenominationList)
+			d := stringInSlice(unit, UnitList)
 			if !d {
-				fmt.Printf("Unit(%s) for amount error. %s.\n", unit, DenominationString)
+				fmt.Printf("Unit(%s) for amount error. %s.\n", unit, fmt.Sprintf("Available unit: %s", strings.Join(UnitList, ",")))
 				fmt.Fprint(os.Stderr, cmd.UsageString())
 				return
 			}
@@ -107,12 +107,12 @@ func (cli *CLI) buildDeployCmd() *cobra.Command {
 	cmd.Flags().StringP("owners", "o", "", "the list of initial owners `address`es, separated by commas(,)")
 	cmd.Flags().Int64P("required", "r", 0, "the `number` of required confirmations, maximum is 50") // how to get 50, contract not deploy?
 	cmd.Flags().StringP("dailylimit", "l", "0", "the `amount` in unit, which can be withdrawn without confirmations on a daily basis")
-	cmd.Flags().StringP("unit", "u", "NEW", fmt.Sprintf("unit for daily limit. %s.", DenominationString))
+	cmd.Flags().StringP("unit", "u", UnitETH, fmt.Sprintf("unit for daily limit. %s.", fmt.Sprintf("Available unit: %s", strings.Join(UnitList, ","))))
 	cmd.Flags().BoolP("save", "s", false, "save contract address to config file")
 
 	cmd.MarkFlagRequired("owners")
 	cmd.MarkFlagRequired("required")
-	//cmd.MarkFlagRequired("dailylimit")
+	// cmd.MarkFlagRequired("dailylimit")
 
 	return cmd
 }

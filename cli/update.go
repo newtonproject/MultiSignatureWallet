@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
@@ -28,10 +29,10 @@ func (cli *CLI) buildUpdateCmd() *cobra.Command {
 
 func (cli *CLI) buildUpdateDailyLimitCmd() *cobra.Command {
 	DailyLimitCmd := &cobra.Command{
-		Use:   "dailylimit <number> [-u NEW|WEI]",
-		Short: "change the daily limit",
-		Long:  "Allows to change the daily limit. Transaction has to be sent by wallet",
-		Args:  cobra.MinimumNArgs(1),
+		Use:                   "dailylimit <number> [-u NEW|WEI]",
+		Short:                 "change the daily limit",
+		Long:                  "Allows to change the daily limit. Transaction has to be sent by wallet",
+		Args:                  cobra.MinimumNArgs(1),
 		DisableFlagsInUseLine: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -55,9 +56,9 @@ func (cli *CLI) buildUpdateDailyLimitCmd() *cobra.Command {
 				fmt.Fprint(os.Stderr, cmd.UsageString())
 				return
 			}
-			d := stringInSlice(unit, DenominationList)
+			d := stringInSlice(unit, UnitList)
 			if !d {
-				fmt.Printf("Unit(%s) for amount error. %s.\n", unit, DenominationString)
+				fmt.Printf("Unit(%s) for amount error. %s.\n", unit, fmt.Sprintf("Available unit: %s", strings.Join(UnitList, ",")))
 				fmt.Fprint(os.Stderr, cmd.UsageString())
 				return
 			}
@@ -79,17 +80,17 @@ func (cli *CLI) buildUpdateDailyLimitCmd() *cobra.Command {
 		},
 	}
 
-	DailyLimitCmd.Flags().StringP("unit", "u", "NEW", fmt.Sprintf("unit for pay amount. %s.", DenominationString))
+	DailyLimitCmd.Flags().StringP("unit", "u", UnitETH, fmt.Sprintf("unit for pay amount. %s.", fmt.Sprintf("Available unit: %s", strings.Join(UnitList, ","))))
 
 	return DailyLimitCmd
 }
 
 func (cli *CLI) buildRequirementCmd() *cobra.Command {
 	RequirementCmd := &cobra.Command{
-		Use:   "required <number>",
-		Short: "change the number of required",
-		Long:  "Allows to change the number of required confirmations. Transaction has to be sent by wallet",
-		Args:  cobra.MinimumNArgs(1),
+		Use:                   "required <number>",
+		Short:                 "change the number of required",
+		Long:                  "Allows to change the number of required confirmations. Transaction has to be sent by wallet",
+		Args:                  cobra.MinimumNArgs(1),
 		DisableFlagsInUseLine: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error

@@ -135,7 +135,7 @@ func (cli *CLI) applyTranDefault() error {
 	}
 
 	cli.tran.Value = new(big.Int)
-	cli.tran.Unit = "NEW"
+	cli.tran.Unit = UnitETH
 	cli.tran.GasPrice = big.NewInt(1)
 	cli.tran.NetworkID = big.NewInt(16888)
 
@@ -519,9 +519,9 @@ func (cli *CLI) applyTxGuideSubmit() error {
 				return err
 			}
 			if unit == "" {
-				unit = "NEW"
+				unit = UnitETH
 			} else {
-				if !stringInSlice(unit, DenominationList) {
+				if !stringInSlice(unit, UnitList) {
 					return errIllegalUnit
 				}
 			}
@@ -754,9 +754,9 @@ func (cli *CLI) applyTxGuideDailyLimit() error {
 		return err
 	}
 	if unit == "" {
-		unit = "NEW"
+		unit = UnitETH
 	} else {
-		if !stringInSlice(unit, DenominationList) {
+		if !stringInSlice(unit, UnitList) {
 			return errIllegalUnit
 		}
 	}

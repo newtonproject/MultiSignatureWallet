@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -14,16 +15,16 @@ import (
 
 func (cli *CLI) buildSignCmd() *cobra.Command {
 	signTxCmd := &cobra.Command{
-		Use:   "sign <filepath> [-u NEW|WEI]",
-		Short: "Sign the transaction in the file",
-		Args:  cobra.MinimumNArgs(1),
+		Use:                   "sign <filepath> [-u NEW|WEI]",
+		Short:                 "Sign the transaction in the file",
+		Args:                  cobra.MinimumNArgs(1),
 		DisableFlagsInUseLine: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			var unit string
 			if cmd.Flags().Changed("unit") {
 				unit, _ = cmd.Flags().GetString("unit")
-				if unit != "" && !stringInSlice(unit, DenominationList) {
-					fmt.Printf("Unit(%s) for amount error. %s.\n", unit, DenominationString)
+				if unit != "" && !stringInSlice(unit, UnitList) {
+					fmt.Printf("Unit(%s) for amount error. %s.\n", unit, fmt.Sprintf("Available unit: %s", strings.Join(UnitList, ",")))
 					fmt.Fprint(os.Stderr, cmd.UsageString())
 					return
 				}
@@ -67,7 +68,7 @@ func (cli *CLI) buildSignCmd() *cobra.Command {
 	}
 
 	signTxCmd.Flags().String("out", "", "file `path` to save signed transaction")
-	signTxCmd.Flags().StringP("unit", "u", "NEW", fmt.Sprintf("unit for pay amount. %s.", DenominationString))
+	signTxCmd.Flags().StringP("unit", "u", UnitETH, fmt.Sprintf("unit for pay amount. %s.", fmt.Sprintf("Available unit: %s", strings.Join(UnitList, ","))))
 
 	return signTxCmd
 }

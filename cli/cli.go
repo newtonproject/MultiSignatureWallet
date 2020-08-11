@@ -41,6 +41,7 @@ type CLI struct {
 	address         string
 
 	tran *Transaction
+	bc   BlockChain
 }
 
 type SimpleRegistry struct {
@@ -49,6 +50,11 @@ type SimpleRegistry struct {
 
 // NewCLI returns an initialized CLI
 func NewCLI() *CLI {
+	bc, err := getBlockChain()
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
 	version := "v1.1.0"
 	if buildCommit != "" {
 		version = fmt.Sprintf("%s-%s", version, buildCommit)
@@ -56,6 +62,10 @@ func NewCLI() *CLI {
 	if buildDate != "" {
 		version = fmt.Sprintf("%s-%s", version, buildDate)
 	}
+	version = fmt.Sprintf("%s-%s", version, bc.String())
+
+	// init blockchain
+	bc.Init()
 
 	cli := &CLI{
 		Name:       "MultiSigWallet",
@@ -69,6 +79,7 @@ func NewCLI() *CLI {
 		client:          nil,
 		simpleRegistry:  nil,
 		walletPassword:  "",
+		bc:              bc,
 	}
 
 	cli.buildRootCmd()
@@ -81,7 +92,7 @@ func (cli *CLI) BuildClient() error {
 	if cli.client == nil {
 		cli.client, err = ethclient.Dial(cli.rpcURL)
 		if err != nil {
-			return fmt.Errorf("Failed to connect to the NewChain client: %v", err)
+			return fmt.Errorf("failed to connect to the %s client: %v", cli.bc.String(), err)
 		}
 	}
 	return nil
@@ -158,40 +169,15 @@ func (cli *CLI) getTransactOpts(address string) (*bind.TransactOpts, error) {
 		return nil, err
 	}
 
-	var trials int
-	//var walletPassword string
-	var keyJSON []byte
-	for trials = 0; trials <= 3; trials++ {
-		keyJSON, err = cli.wallet.Export(cli.account, cli.walletPassword, cli.walletPassword)
-		if err == nil {
-			break
-		}
-		if trials >= 3 {
-			return nil, fmt.Errorf("Error: Failed to unlock account %s (%v)", cli.account.Address.String(), err)
-
-		}
-		prompt := fmt.Sprintf("Unlocking account %s | Attempt %d/%d", cli.account.Address.String(), trials+1, 3)
-		cli.walletPassword, _ = getPassPhrase(prompt, false)
-	}
-
-	opts, err := bind.NewTransactor(bytes.NewReader(keyJSON), cli.walletPassword)
-	if err != nil {
-		fmt.Println("NewTransactor Error: ", err)
-		return nil, err
-	}
-
-	if err = cli.BuildClient(); err != nil {
-		fmt.Println("Build client Error: ", err)
-		return nil, err
-	}
+	cli.BuildClient()
 	networkID, err := cli.client.NetworkID(context.Background())
 	if err != nil {
 		fmt.Println("NetworkID Error: ", err)
 		return nil, err
 	}
-	bind.NetworkID = networkID
 
-	return opts, err
+	opts := NewKeyedTransactorByAccount(cli.wallet, cli.account, cli.walletPassword, networkID)
+	return opts, nil
 }
 
 // Execute parses the command line and processes it.

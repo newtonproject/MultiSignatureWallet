@@ -8,7 +8,6 @@ import (
 
 const defaultConfigFile = "./config.toml"
 const defaultWalletPath = "./wallet/"
-const defaultRPCURL = "https://rpc1.newchain.newtonproject.org"
 const defaultContractAddress = ""
 
 func defaultConfig(cli *CLI) {

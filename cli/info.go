@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
@@ -22,8 +23,8 @@ func (cli *CLI) buildInfoCmd() *cobra.Command {
 			}
 
 			unit, _ := cmd.Flags().GetString("unit")
-			if unit != "" && !stringInSlice(unit, DenominationList) {
-				fmt.Printf("Unit(%s) for invalid. %s.\n", unit, DenominationString)
+			if unit != "" && !stringInSlice(unit, UnitList) {
+				fmt.Printf("Unit(%s) for invalid. %s.\n", unit, fmt.Sprintf("Available unit: %s", strings.Join(UnitList, ",")))
 				fmt.Fprint(os.Stderr, cmd.UsageString())
 				return
 			}
@@ -87,7 +88,7 @@ func (cli *CLI) buildInfoCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("unit", "u", "", fmt.Sprintf("unit for value. %s.", DenominationString))
+	cmd.Flags().StringP("unit", "u", "", fmt.Sprintf("unit for value. %s.", fmt.Sprintf("Available unit: %s", strings.Join(UnitList, ","))))
 
 	return cmd
 }

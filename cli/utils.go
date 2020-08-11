@@ -13,7 +13,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/console"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/sirupsen/logrus"
 )
@@ -23,27 +22,24 @@ var (
 	big1NEWInWEI = new(big.Int).Exp(big10, big.NewInt(18), nil)
 	maxValue     = big.NewInt(0).SetBytes(common.FromHex("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"))
 
-	errBigSetString  = errors.New("Big SetString Error")
-	errLessThan0Wei  = errors.New("The transaction amount is less than 0 WEI")
-	errIllegalAmount = errors.New("Illegal Amount")
-	errIllegalUnit   = errors.New("Illegal Unit")
-
-	errClientNil           = errors.New("Failed to connect to the NewChain client")
-	errCliNil              = errors.New("Cli error")
-	errCliTranNil          = errors.New("Cli tran error")
-	errRequiredFromAddress = errors.New(`required flag(s) "from" not set`)
-	errArgs0               = errors.New("missing value for required argument")
-	errFromAddressNil      = errors.New("from address nil")
-	errFromAddressIllegal  = errors.New("from address illegal")
-	errToAddressNil        = errors.New("to address nil")
-	errToAddressIllegal    = errors.New("to address illegal")
-	errWalletPathEmppty    = errors.New("empty wallet, create account first")
-	errWalletNoAccount     = errors.New("keystore find account nil")
-	errAmount0             = errors.New("not set send amount or amount is 0")
-	errRequiredToAddress   = errors.New("not set to address")
-	errNonceError          = errors.New("get nonce error")
-	errValueExceeds        = errors.New("value exceeds the maximum")
-
+	errBigSetString            = errors.New("Big SetString Error")
+	errLessThan0Wei            = errors.New("The transaction amount is less than 0 WEI")
+	errIllegalAmount           = errors.New("Illegal Amount")
+	errIllegalUnit             = errors.New("Illegal Unit")
+	errCliNil                  = errors.New("Cli error")
+	errCliTranNil              = errors.New("Cli tran error")
+	errRequiredFromAddress     = errors.New(`required flag(s) "from" not set`)
+	errArgs0                   = errors.New("missing value for required argument")
+	errFromAddressNil          = errors.New("from address nil")
+	errFromAddressIllegal      = errors.New("from address illegal")
+	errToAddressNil            = errors.New("to address nil")
+	errToAddressIllegal        = errors.New("to address illegal")
+	errWalletPathEmppty        = errors.New("empty wallet, create account first")
+	errWalletNoAccount         = errors.New("keystore find account nil")
+	errAmount0                 = errors.New("not set send amount or amount is 0")
+	errRequiredToAddress       = errors.New("not set to address")
+	errNonceError              = errors.New("get nonce error")
+	errValueExceeds            = errors.New("value exceeds the maximum")
 	errRequiredContractAddress = errors.New("not set contract address")
 	errContractAddressIllegal  = errors.New("contract address illegal")
 )
@@ -94,31 +90,9 @@ func stringInSlice(str string, list []string) bool {
 	return false
 }
 
-// DenominationString is for denomination string
-//const DenominationString = "Available unit: Wei, Ada, Babbage, Shannon, Szabo, Finney, Ether, Einstein, Douglas, Gwei"
-const DenominationString = "Available unit: NEW, WEI"
-
-// DenominationList is array for denomination string
-// var DenominationList = []string{"Wei", "Ada", "Babbage", "Shannon", "Szabo", "Finney", "Ether", "Einstein", "Douglas", "Gwei"}
-var DenominationList = []string{"NEW", "WEI"}
-
-func getDenominationByUnit(unit string) *big.Float {
-	bf := new(big.Float)
-	switch unit {
-	case "NEW":
-		bf.SetFloat64(params.Ether)
-	case "WEI":
-		bf.SetFloat64(params.Wei)
-	default:
-		bf.SetFloat64(params.Wei)
-	}
-
-	return bf
-}
-
 func getAmountWei(amountStr, unit string) (*big.Int, error) {
 	switch unit {
-	case "NEW":
+	case UnitETH:
 		index := strings.IndexByte(amountStr, '.')
 		if index <= 0 {
 			amountWei, ok := new(big.Int).SetString(amountStr, 10)
@@ -146,7 +120,7 @@ func getAmountWei(amountStr, unit string) (*big.Int, error) {
 		}
 
 		return new(big.Int).Add(amountStrIntBig, amountStrDecBig), nil
-	case "WEI":
+	case UnitWEI:
 		amountWei, ok := new(big.Int).SetString(amountStr, 10)
 		if !ok {
 			return nil, errBigSetString
@@ -159,16 +133,16 @@ func getAmountWei(amountStr, unit string) (*big.Int, error) {
 
 func getWeiAmountTextUnitByUnit(amount *big.Int, unit string) string {
 	if amount == nil {
-		return "0 WEI"
+		return fmt.Sprintf("0 %s", UnitWEI)
 	}
 	amountStr := amount.String()
 	amountStrLen := len(amountStr)
 	if unit == "" {
 		if amountStrLen <= 18 {
 			// show in WEI
-			unit = "WEI"
+			unit = UnitWEI
 		} else {
-			unit = "NEW"
+			unit = UnitETH
 		}
 	}
 
@@ -183,7 +157,7 @@ func getWeiAmountTextByUnit(amount *big.Int, unit string) string {
 	amountStrLen := len(amountStr)
 
 	switch unit {
-	case "NEW":
+	case UnitETH:
 		var amountStrDec, amountStrInt string
 		if amountStrLen <= 18 {
 			amountStrDec = strings.Repeat("0", 18-amountStrLen) + amountStr
@@ -198,7 +172,7 @@ func getWeiAmountTextByUnit(amount *big.Int, unit string) string {
 		}
 		return amountStrInt + "." + amountStrDec
 
-	case "WEI":
+	case UnitWEI:
 		return amountStr
 	}
 

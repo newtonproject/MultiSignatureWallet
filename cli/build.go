@@ -24,9 +24,9 @@ type PayTransaction struct {
 
 func (cli *CLI) buildBuildCmd() *cobra.Command {
 	signTxCmd := &cobra.Command{
-		Use:   "build [--out outfile]",
-		Short: "Build transaction",
-		Long:  "Build transaction in guide",
+		Use:                   "build [--out outfile]",
+		Short:                 "Build transaction",
+		Long:                  "Build transaction in guide",
 		DisableFlagsInUseLine: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -208,6 +208,16 @@ func (cli *CLI) getNoSignTransactOpts() (*bind.TransactOpts, error) {
 		return nil, errCliTranNil
 	}
 
+	if err := cli.BuildClient(); err != nil {
+		fmt.Println("NetworkID Error: ", err)
+		return nil, err
+	}
+	networkID, err := cli.client.NetworkID(context.Background())
+	if err != nil {
+		fmt.Println("NetworkID Error: ", err)
+		return nil, err
+	}
+
 	keyAddr := cli.tran.From
 	opts := &bind.TransactOpts{
 		From: keyAddr,
@@ -218,22 +228,11 @@ func (cli *CLI) getNoSignTransactOpts() (*bind.TransactOpts, error) {
 
 			cli.copyTx(tx)
 			cli.tran.From = address
-			cli.tran.NetworkID = bind.NetworkID
+			cli.tran.NetworkID = networkID
 
 			return nil, errNoSignTransactor
 		},
 	}
-
-	if err := cli.BuildClient(); err != nil {
-		fmt.Println("NetworkID Error: ", err)
-		return nil, err
-	}
-	networkID, err := cli.client.NetworkID(context.Background())
-	if err != nil {
-		fmt.Println("NetworkID Error: ", err)
-		return nil, err
-	}
-	bind.NetworkID = networkID
 
 	return opts, err
 }
@@ -246,7 +245,7 @@ func (cli *CLI) copyTx(tx *types.Transaction) {
 		cli.tran.To = *tx.To()
 	}
 	cli.tran.Value = tx.Value()
-	cli.tran.Unit = "WEI"
+	cli.tran.Unit = UnitWEI
 	cli.tran.Data = tx.Data()
 	cli.tran.Nonce = tx.Nonce()
 	cli.tran.GasPrice = tx.GasPrice()
