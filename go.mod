@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/allegro/bigcache v1.2.1 // indirect
 	github.com/aristanetworks/goarista v0.0.0-20200609010056-95bcf8053598 // indirect
+	github.com/btcsuite/btcutil v1.0.2
 	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/ethereum/go-ethereum v1.8.26
 	github.com/fatih/color v1.9.0 // indirect

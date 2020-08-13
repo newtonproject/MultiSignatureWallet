@@ -1,12 +1,15 @@
 package cli
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 	"os"
 	"strings"
 
+	"github.com/btcsuite/btcutil/base58"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
@@ -14,8 +17,13 @@ import (
 )
 
 func (cli *CLI) buildAccountCmd() *cobra.Command {
+	use := "account [new|list|balance]"
+	if cli.bc == NewChain {
+		use = "account [new|list|balance|convert]"
+	}
+
 	cmd := &cobra.Command{
-		Use:   "account [new|list|balance]",
+		Use:   use,
 		Short: fmt.Sprintf("Manage %s accounts", cli.bc.String()),
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -26,6 +34,9 @@ func (cli *CLI) buildAccountCmd() *cobra.Command {
 	cmd.AddCommand(cli.buildAccountNewCmd())
 	cmd.AddCommand(cli.buildAccountListCmd())
 	cmd.AddCommand(cli.buildBalanceCmd())
+	if cli.bc == NewChain {
+		cmd.AddCommand(cli.buildAccountConvertCmd())
+	}
 
 	return cmd
 }
@@ -174,4 +185,73 @@ func (cli *CLI) getBalance(address common.Address) (*big.Int, error) {
 		return nil, err
 	}
 	return cli.client.BalanceAt(context.Background(), address, nil)
+}
+
+func (cli *CLI) buildAccountConvertCmd() *cobra.Command {
+	accountListCmd := &cobra.Command{
+		Use:                   "convert",
+		Short:                 "convert address to NewChainAddress",
+		Args:                  cobra.MinimumNArgs(1),
+		DisableFlagsInUseLine: true,
+		Run: func(cmd *cobra.Command, args []string) {
+
+			err := cli.BuildClient()
+			if err != nil {
+				fmt.Printf("Error: build client error(%v)\n", err)
+				return
+			}
+			chainID, err := cli.client.NetworkID(context.Background())
+			if err != nil {
+				fmt.Printf("Error: get chainID error(%v), use chainID as %s\n", err, chainID.String())
+				return
+			}
+
+			for _, addressStr := range args {
+				if common.IsHexAddress(addressStr) {
+					address := common.HexToAddress(addressStr)
+					fmt.Println(address.String(), addressToNew(chainID.Bytes(), address))
+					continue
+				}
+
+				address, err := newToAddress(chainID.Bytes(), addressStr)
+				if err != nil {
+					fmt.Println(err, addressStr)
+					continue
+				}
+				fmt.Println(address.String(), addressStr)
+			}
+
+		},
+	}
+
+	return accountListCmd
+}
+
+func addressToNew(chainID []byte, address common.Address) string {
+	input := append(chainID, address.Bytes()...)
+	return "NEW" + base58.CheckEncode(input, 0)
+}
+
+func newToAddress(chainID []byte, newAddress string) (common.Address, error) {
+	if newAddress[:3] != "NEW" {
+		return common.Address{}, errors.New("not NEW address")
+	}
+
+	decoded, version, err := base58.CheckDecode(newAddress[3:])
+	if err != nil {
+		return common.Address{}, err
+	}
+	if version != 0 {
+		return common.Address{}, errors.New("illegal version")
+	}
+	if len(decoded) < 20 {
+		return common.Address{}, errors.New("illegal decoded length")
+	}
+	if !bytes.Equal(decoded[:len(decoded)-20], chainID) {
+		return common.Address{}, errors.New("illegal ChainID")
+	}
+
+	address := common.BytesToAddress(decoded[len(decoded)-20:])
+
+	return address, nil
 }
