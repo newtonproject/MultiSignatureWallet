@@ -97,6 +97,11 @@ Use commands `go generate` or `abigen` to generate MultiSigWalletWithDailyLimit.
 abigen --sol contract/MultiSigWalletWithDailyLimit.sol --pkg cli --out cli/MultiSigWalletWithDailyLimit.go
 ```
 
+
+tips: 
+1. the version to compiler used is `solc-v0.4.15+commit.8b45bddb`
+2. the version of newton MultiSignatureWallet is `solc-v0.4.24+commit.e67f0147`
+
 ### Commandline
 
 #### Help
