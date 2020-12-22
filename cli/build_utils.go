@@ -25,6 +25,7 @@ const (
 	OwnerReplace
 	DailyLimit
 	Required
+	TokenTransfer
 )
 
 // Transaction for send Transaction
@@ -249,6 +250,7 @@ func (cli *CLI) applyTxGuide(offline bool) error {
 	fmt.Printf(" %d. OwnerReplace - Replace an owner\n", OwnerReplace)
 	fmt.Printf(" %d. DailyLimit - Update the daily limit\n", DailyLimit)
 	fmt.Printf(" %d. Required - Update the number of required\n", Required)
+	fmt.Printf(" %d. TokenTransfer - Transfer token from this MSW\n", TokenTransfer)
 
 	action := Submit
 	prompt = fmt.Sprintf("Enter the number of action (default: %d): ", action)
@@ -283,6 +285,7 @@ func (cli *CLI) applyTxGuide(offline bool) error {
 			case OwnerReplace:
 			case DailyLimit:
 			case Required:
+			case TokenTransfer:
 			default:
 				return errIllegalAmount
 			}
@@ -341,6 +344,11 @@ func (cli *CLI) applyTxGuide(offline bool) error {
 	case Required:
 		// Required - Update the number of required
 		if err := cli.applyTxGuideRequired(); err != nil {
+			return err
+		}
+	case TokenTransfer:
+		// Token - Call token transfer
+		if err := cli.applyTxGuideTokenTransfer(); err != nil {
 			return err
 		}
 	default:

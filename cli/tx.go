@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -38,13 +39,6 @@ func (cli *CLI) buildTxSubmitCmd() *cobra.Command {
 				return
 			}
 
-			amountWei, err := getAmountWei(amountStr, unit)
-			if err != nil {
-				fmt.Println("Get amount error:", err)
-				fmt.Fprint(os.Stderr, cmd.UsageString())
-				return
-			}
-
 			fromAddress := viper.GetString("from")
 			if fromAddress == "" || !common.IsHexAddress(fromAddress) {
 				fmt.Println("Error: not set from address of owner")
@@ -60,14 +54,92 @@ func (cli *CLI) buildTxSubmitCmd() *cobra.Command {
 			}
 			toAddress := common.HexToAddress(toAddressStr)
 
-			data, err := cmd.Flags().GetString("data")
-			if err != nil {
-				fmt.Println("Error:", err)
-				fmt.Fprint(os.Stderr, cmd.UsageString())
-				return
+			var (
+				data      []byte
+				amountWei = new(big.Int)
+			)
+			if cmd.Flags().Changed("token") {
+				fmt.Println("Trying to submit token transfer tx:")
+				tokenAddressStr, err := cmd.Flags().GetString("token")
+				if err != nil {
+					fmt.Println("Error: get token address error")
+					return
+				}
+				tokenAddress := common.HexToAddress(tokenAddressStr)
+				fmt.Println("The token address is: ", tokenAddress.String())
+
+				ERC20TransferABI := `[{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`
+				parsed, err := abi.JSON(strings.NewReader(ERC20TransferABI))
+				if err != nil {
+					fmt.Println("JSON err: ", err)
+					return
+				}
+				name := "transfer"
+				method, exist := parsed.Methods[name]
+				if !exist {
+					fmt.Errorf("method '%s' not found", name)
+					return
+				}
+
+				var decimals uint8
+				{
+					// get deicmals
+					err = cli.BuildClient()
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+					erc20 := bind.NewBoundContract(tokenAddress, parsed, cli.client, cli.client, cli.client)
+					var (
+						ret0 = new(uint8)
+					)
+					out := ret0
+					err = erc20.Call(nil, out, "decimals")
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+
+					decimals = *out
+				}
+				fmt.Println("The decimals of the token is: ", decimals)
+
+				tokenAmountWei, err := GetAmountISAACFromTextWithDecimals(amountStr, decimals)
+				if err != nil {
+					fmt.Println("Get amount error:", err)
+					fmt.Fprint(os.Stderr, cmd.UsageString())
+					return
+				}
+
+				arguments, err := method.Inputs.Pack(toAddress, tokenAmountWei)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+
+				// Pack up the method ID too if not a constructor and return
+				data = append(method.Id(), arguments...)
+
+				toAddress = tokenAddress
+				amountWei = big.NewInt(0)
+			} else {
+				dataStr, err := cmd.Flags().GetString("data")
+				if err != nil {
+					fmt.Println("Error:", err)
+					fmt.Fprint(os.Stderr, cmd.UsageString())
+					return
+				}
+				data = []byte(dataStr)
+
+				amountWei, err = getAmountWei(amountStr, unit)
+				if err != nil {
+					fmt.Println("Get amount error:", err)
+					fmt.Fprint(os.Stderr, cmd.UsageString())
+					return
+				}
 			}
 
-			cli.SubmitTransaction(fromAddress, toAddress, amountWei, []byte(data))
+			cli.SubmitTransaction(fromAddress, toAddress, amountWei, data)
 
 		},
 	}
@@ -77,6 +149,8 @@ func (cli *CLI) buildTxSubmitCmd() *cobra.Command {
 	TxSubmitCmd.Flags().String("data", "", "custom data message (use quotes if there are spaces)")
 
 	TxSubmitCmd.MarkFlagRequired("to")
+
+	TxSubmitCmd.Flags().String("token", "", "the address of token, if set then submit send token from MSW to receipt")
 
 	return TxSubmitCmd
 }
