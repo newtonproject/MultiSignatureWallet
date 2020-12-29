@@ -9,47 +9,54 @@
 
 # Table of Contents
 
-- [QuickStart](#quickstart)
-   * [Download from releases](#download-from-releases)
-   * [Building the source](#building-the-source)
-   * [Windows](#windows)
-   * [Linux or Mac](#linux-or-mac)
-- [Usage](#installing)
-   * [Contract](#contract)
-   * [Commandline](#commandline)
-      * [Help](#help)
-      * [Use config.toml](#use-configtoml)
-      * [Initialize config file](#initialize-config-file)
-      * [Create account](#create-account)
-      * [Deploy contract](#deploy-contract)
-      * [Submit transaction](#submit-transaction)
-      * [Confirm transactionID](#confirm-transactionid)
-      * [Revoke transactionID](#revoke-transactionid)
-      * [Execute transactionID](#execute-transactionid)
-      * [List transactionIDs](#list-transactionids)
-      * [Get basic info](#get-basic-info)
-      * [Manage owners](#manage-owners)
-      * [Update daily limit or the number of required](#update-daily-limit-or-the-number-of-required)
-      * [Build transaction online](#build-transaction-online)
-      * [Sign transaction offline](#sign-transaction-offline)
-      * [Broadcast signed transaction online](#broadcast-signed-transaction-online)
-- [Examples](#examples)
-   * [Online Example (3/3)](#online-example-33)
-      * [For owner A](#for-owner-a)
-         * Submit transaction
-      * [For owner B and C](#for-owner-b-and-c)
-         * Confirm transactionID
-   * [Offline Example (3/3)](#offline-example-33)
-      * [For owner A](#for-owner-a-1)
-         1. Build Submit Transaction Information (Online Computer)
-         2. Sign Transaction (Offline Computer)
-         3. Broadcast Signed Transaction (Online Computer)
-      * [For owner B and C](#for-owner-b-and-c-1)
-         1. Build Confirm TransactionID Information (Online Computer)
-         2. Sign Transaction (Offline Computer)
-         3. Broadcast Signed Transaction (Online Computer)
-      * [Offline Example Tips](#offline-example-tips)
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [QuickStart](#quickstart)
+  - [Download from releases](#download-from-releases)
+  - [Building the source](#building-the-source)
+    - [Windows](#windows)
+    - [Linux or Mac](#linux-or-mac)
+- [Usage](#usage)
+  - [Contract](#contract)
+  - [Commandline](#commandline)
+    - [Help](#help)
+    - [Use config.toml](#use-configtoml)
+    - [Initialize config file](#initialize-config-file)
+    - [Create account](#create-account)
+    - [Deploy contract](#deploy-contract)
+    - [Submit transaction](#submit-transaction)
+    - [Confirm transactionID](#confirm-transactionid)
+    - [Revoke transactionID](#revoke-transactionid)
+    - [Execute transactionID](#execute-transactionid)
+    - [List transactionIDs](#list-transactionids)
+    - [Get basic info](#get-basic-info)
+    - [Manage owners](#manage-owners)
+    - [Update daily limit or the number of required](#update-daily-limit-or-the-number-of-required)
+    - [Build transaction online](#build-transaction-online)
+    - [Sign transaction offline](#sign-transaction-offline)
+    - [Broadcast signed transaction online](#broadcast-signed-transaction-online)
+  - [Token](#token)
+    - [Token info](#token-info)
+    - [Token info](#token-info-1)
+- [Examples](#examples)
+  - [Online Example (3/3)](#online-example-33)
+      - [For owner A](#for-owner-a)
+      - [Submit transaction](#submit-transaction-1)
+    - [For owner B and C](#for-owner-b-and-c)
+      - [Confirm transaction](#confirm-transaction)
+  - [Offline Example (3/3)](#offline-example-33)
+    - [For owner A](#for-owner-a-1)
+      - [Build Submit Transaction Information (Online Computer)](#build-submit-transaction-information-online-computer)
+      - [Sign Transaction (Offline Computer)](#sign-transaction-offline-computer)
+      - [Broadcast Signed Transaction (Online Computer)](#broadcast-signed-transaction-online-computer)
+    - [For owner B and C](#for-owner-b-and-c-1)
+      - [Build Confirm TransactionID Information (Online Computer)](#build-confirm-transactionid-information-online-computer)
+      - [Sign Transaction (Offline Computer)](#sign-transaction-offline-computer-1)
+      - [Broadcast Signed Transaction (Online Computer)](#broadcast-signed-transaction-online-computer-1)
+    - [Offline Example Tips:](#offline-example-tips)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## QuickStart
 
@@ -317,9 +324,27 @@ MultiSignatureWallet sign tx.txt --out tx.sign
 ```
 
 #### Broadcast signed transaction online
+
 ```bash
-# Broadcast signed transacion hex to NewChain system
+# Broadcast signed transaction hex to NewChain system
 MultiSignatureWallet broadcast tx.sign
+```
+
+### Token 
+
+#### Token info
+
+```bash
+# Show token info of current MSW
+MultiSignatureWallet info --token 0x20F12218281F9CA566B5c41F17c6c19050125cD3
+```
+
+#### Token info
+
+```bash
+# Send 10 token from MSW to 0xA950D99522C377C4786d77Af56A240D7e626e61d
+MultiSignatureWallet submit 10 --to 0xA950D99522C377C4786d77Af56A240D7e626e61d --token 0x20F12218281F9CA566B5c41F1
+7c6c19050125cD3
 ```
 
 ## Examples
